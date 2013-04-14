@@ -1,5 +1,8 @@
+%% -*- erlang-indent-level: 4;indent-tabs-mode: nil; fill-column: 92 -*-
+%% vim: set ts=4 sts=4 sw=4 et:
 {application, concrete, [
-	{description, "A rebar plugin providing an enhanced build environment"},
+	{description, "concrete enhances rebar based projects with a common Makefile "
+         "rules and an easy way to include development only dependencies"},
 	{vsn, "0.0.1"},
 	{registered, []},
 	{applications, [kernel, stdlib]},

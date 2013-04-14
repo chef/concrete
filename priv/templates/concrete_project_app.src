@@ -1,0 +1,15 @@
+%% -*- mode: erlang -*-
+{application, {{name}},
+ [
+  {description, "{{description}}"},
+  {vsn, "0.0.1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  %% uncomment if this is an active application
+  %% {mod, { {{name}}_app, []}},
+  {env, []}
+ ]}.
+%% vim: set filetype=erlang tabstop=2

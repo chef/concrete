@@ -2,9 +2,15 @@ DEPS ?= $(CURDIR)/deps
 
 DIALYZER_OPTS ?= -Wunderspecs
 
-# List dependencies that should be included in a cached dialyzer PLT file.
-# DIALYZER_DEPS = deps/app1/ebin \
-#                 deps/app2/ebin
+# Find all the deps the project has by searching the deps dir
+ALL_DEPS = $(notdir $(wildcard deps/*))
+# Create a list of deps that should be used by dialyzer by doing a
+# complement on the sets
+DEPS_LIST = $(filter-out $(DIALYZER_SKIP_DEPS), $(ALL_DEPS))
+# Create the path structure from the dep names
+# so dialyzer can find the .beam files in the ebin dir
+# This list is then used by dialyzer in creating the local PLT
+DIALYZER_DEPS = $(foreach dep,$(DEPS_LIST),deps/$(dep)/ebin)
 
 DEPS_PLT = deps.plt
 
@@ -34,7 +40,10 @@ ERLANG_DIALYZER_APPS = asn1 \
                        webtool \
                        xmerl
 
-all: compile eunit dialyzer
+all: .concrete/DEV_MODE compile eunit dialyzer $(ALL_HOOK)
+
+.concrete/DEV_MODE:
+	@touch $@
 
 # Clean ebin and .eunit of this project
 clean:
