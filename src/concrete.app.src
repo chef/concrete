@@ -1,0 +1,8 @@
+{application, concrete, [
+	{description, "A rebar plugin providing an enhanced build environment"},
+	{vsn, "0.0.1"},
+	{registered, []},
+	{applications, [kernel, stdlib]},
+	{module, []},
+	{env, []}
+]}.
