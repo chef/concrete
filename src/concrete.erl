@@ -71,14 +71,13 @@ strip(S) ->
 -define(UPDATE_FILE_MAP,
         [{"concrete_project_Makefile", "Makefile"},
          {"concrete_project_rebar.config.script", "rebar.config.script"},
-         {"concrete_project_rebar.mk", ".concrete/rebar.mk"}]).
+         {"concrete_project_concrete.mk", "concrete.mk"}]).
 
 %% Move rebar.config.script -> rebar.config.script.0
-%% Move .concrete/rebar.mk -> .concrete/rebar.mk.0
+%% Move concrete.mk -> concrete.mk.0
 %% Put new copies in place
 concrete_update() ->
     FilesToBackup = [ Path || {_, Path} <- ?UPDATE_FILE_MAP ],
-    filelib:ensure_dir(".concrete/ENSURE"),
     make_backups(FilesToBackup),
     make_copies(?UPDATE_FILE_MAP),
     ok.

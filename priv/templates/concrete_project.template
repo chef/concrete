@@ -9,13 +9,12 @@
 {dir, "include"}.
 {dir, "test"}.
 {dir, "priv"}.
-{dir, ".concrete"}.
 {template, "concrete_project_gitignore",           ".gitignore"}.
 {template, "concrete_project_README.md",           "README.md"}.
 {template, "concrete_project_Makefile",            "Makefile"}.
 {template, "concrete_project_rebar.config",        "rebar.config"}.
 {template, "concrete_project_rebar.config.script", "rebar.config.script"}.
-{template, "concrete_project_rebar.mk",            ".concrete/rebar.mk"}.
+{template, "concrete_project_concrete.mk",         "concrete.mk"}.
 {template, "concrete_project_eunit.erl",           "test/{{name}}_tests.erl"}.
 {template, "concrete_project_mod.erl",             "src/{{name}}.erl"}.
 {template, "concrete_project_app.src",             "src/{{name}}.app.src"}.

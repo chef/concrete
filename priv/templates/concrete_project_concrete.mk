@@ -43,6 +43,7 @@ ERLANG_DIALYZER_APPS = asn1 \
 all: .concrete/DEV_MODE compile eunit dialyzer $(ALL_HOOK)
 
 .concrete/DEV_MODE:
+	@mkdir -p .concrete
 	@touch $@
 
 # Clean ebin and .eunit of this project

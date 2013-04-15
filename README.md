@@ -121,14 +121,14 @@ The whole sequence should look like this:
  Now try: make
 
  $ ls -a
-   .concrete/  .gitignore  Makefile  README.md  include/  priv/  rebar.config  rebar.config.script  src/  test/
+   .concrete/  .gitignore  Makefile  README.md  concrete.mk include/  priv/  rebar.config  rebar.config.script  src/  test/
 ```
 
 **important** Add the files that concrete created for you to git.
 Be sure that you `git add1 the following:
 
 ```
-git add .concrete/rebar.mk
+git add concrete.mk
 git add rebar.config
 git add rebar.config.script
 git add Makefile
@@ -137,7 +137,7 @@ git add Makefile
 ### Updating an existing project ###
 
 When you run `concrete update`, concrete will create backup copies of
-your `Makefile`, `rebar.config.script`, and `.concrete/rebar.mk`. Then
+your `Makefile`, `rebar.config.script`, and `concrete.mk`. Then
 it will copy the latest version of those files over.
 
 The purpose of the update command is to make it easier to receive
@@ -150,7 +150,7 @@ project to use concrete.
 ## How It Works ##
 
 A project that uses concrete, will have a minimal `Makefile` that
-includes a set of standard rules in `.concrete/rebar.mk`. The project
+includes a set of standard rules in `concrete.mk`. The project
 will also contain both a `rebar.config` file and a
 `rebar.config.script` file. The `.script` config is evaluated by rebar
 after the standard config is read. The script looks for

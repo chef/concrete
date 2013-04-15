@@ -18,13 +18,12 @@
 # target provided by concrete
 ALL_HOOK = concrete
 
-# Do we have a cached copy of the rebar.mk rules file available?
-concrete_rules_file = $(wildcard .concrete/rebar.mk)
-ifeq ($(concrete_rules_file),.concrete/rebar.mk)
-    include .concrete/rebar.mk
+concrete_rules_file = $(wildcard concrete.mk)
+ifeq ($(concrete_rules_file),concrete.mk)
+    include concrete.mk
 else
     all:
-	@echo "ERROR: missing .concrete/rebar.mk"
+	@echo "ERROR: missing concrete.mk"
 	@echo "  run: concrete update"
 endif
 
