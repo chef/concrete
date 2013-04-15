@@ -4,3 +4,4 @@ deps/*
 rel/{{name}}
 .concrete/DEV_MODE
 deps.plt
+.eunit
