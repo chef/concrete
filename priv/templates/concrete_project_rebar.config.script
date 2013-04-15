@@ -74,18 +74,6 @@ end,
 
 Deps = {deps, DevOnlyDeps},
 
-%% ensure concrete is on the load path
-case code:which(concrete) of
-    non_existing ->
-        Msg = "ERROR: unable to find concrete on the load path.\n"
-            "  Add the path to your checkout of concrete to ERL_LIBS and retry.\n"
-            "  You can clone concrete from git://github.com/opscode/concrete.git\n",
-        io:format(Msg),
-        error(concrete_not_found);
-    _ ->
-        ok
-end,
-
 ConfigPath = filename:dirname(SCRIPT),
 DevMarker = filename:join([ConfigPath, ".concrete/DEV_MODE"]),
 
