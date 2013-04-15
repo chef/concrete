@@ -77,7 +77,7 @@ to your `rebar.config` file:
 
 ## Installation ##
 
-1. Put a copy concrete in rebar's template directory.
+1. Put a copy of concrete in rebar's template directory.
 
    ```
      mkdir -p ~/.rebar/templates
