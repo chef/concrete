@@ -77,24 +77,27 @@ to your `rebar.config` file:
 
 ## Installation ##
 
-1. Put a copy of concrete in rebar's template directory.
+1. Clone the concrete repo
+2. Build the project
+3. Add the `concrete` escript to your PATH. NOTE: the concrete escript
+   cannot be relocated because it locates the template files in
+   `priv/templates` based on the location of the executable.
 
    ```
-     mkdir -p ~/.rebar/templates
-     cd ~/.rebar/templates
      git clone git://github.com/opscode/concrete.git
      cd concrete
      rebar compile escriptize
-     # you could also just run make since concrete self-hosts
+     # now add `pwd` to your PATH
    ```
 
-2. Add the concrete executable to your path. The concrete escript
-   needs to access files in the priv directory of the checkout. You
-   cannot relocate the escript.
+Is this thing on? Let's find out!
 
-    ```
-     echo "export PATH=~/.rebar/templates/concrete:$PATH" >> ~/.zshrc
-    ```
+ ```
+ mkdir infodata
+ cd infodata
+ concrete init
+ # now look around and try running 'make'
+ ```
 
 ## Concrete Examples ##
 

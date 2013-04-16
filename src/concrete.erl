@@ -46,8 +46,8 @@ concrete_init() ->
     io:format("Initialize a new project with concrete\n\n"),
     Name = strip(io:get_line("Project name: ")),
     Desc = strip(io:get_line("Short Description:\n")),
-    CmdFmt = "rebar create template=concrete_project name=~s description=\"~s\"",
-    Cmd = io_lib:format(CmdFmt, [Name, Desc]),
+    CmdFmt = "rebar create template_dir=~s template=concrete_project name=~s description=\"~s\"",
+    Cmd = io_lib:format(CmdFmt, [template_dir(), Name, Desc]),
     io:format("Creating ~s via '~s'~n", [Name, Cmd]),
     os:cmd(Cmd),
     io:format("Now try: make\n"),
@@ -106,10 +106,7 @@ make_copies(Map) ->
     [ make_copy(Source, Dest) || {Source, Dest} <- Map ].
 
 make_copy(Source, Dest) ->
-    %% Note that code:which and code:priv_dir return odd looking
-    %% results when run via an escriptized.
-    ConcreteDir = filename:dirname(escript:script_name()),
-    RealSource = filename:join([ConcreteDir, "priv", "templates", Source]),
+    RealSource = filename:join([template_dir(), Source]),
     case file:copy(RealSource, Dest) of
         {ok, _} ->
             io:format("updated: ~s\n", [Dest]);
@@ -118,3 +115,11 @@ make_copy(Source, Dest) ->
                       "error: ~p~n", [RealSource, Dest, Why]),
             halt(1)
     end.
+
+template_dir() ->
+    filename:join([concrete_dir(), "priv", "templates"]).
+
+concrete_dir() ->
+    %% Note that code:which and code:priv_dir return odd looking
+    %% results when run via an escriptized.
+    filename:dirname(escript:script_name()).
