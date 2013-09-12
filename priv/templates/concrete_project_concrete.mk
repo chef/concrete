@@ -18,23 +18,18 @@ ERLANG_DIALYZER_APPS = asn1 \
                        compiler \
                        crypto \
                        edoc \
-                       edoc \
                        erts \
-                       eunit \
                        eunit \
                        gs \
                        hipe \
                        inets \
                        kernel \
                        mnesia \
-                       mnesia \
                        observer \
                        public_key \
                        runtime_tools \
-                       runtime_tools \
                        ssl \
                        stdlib \
-                       syntax_tools \
                        syntax_tools \
                        tools \
                        webtool \
