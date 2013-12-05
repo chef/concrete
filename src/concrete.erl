@@ -43,6 +43,7 @@ main(_Args) ->
 
 concrete_init() ->
     verify_empty_directory(),
+    verify_rebar(),
     io:format("Initialize a new project with concrete\n\n"),
     Name = strip(io:get_line("Project name: ")),
     Desc = strip(io:get_line("Short Description:\n")),
@@ -52,6 +53,15 @@ concrete_init() ->
     os:cmd(Cmd),
     io:format("Now try: make\n"),
     ok.
+
+verify_rebar() ->
+    case os:find_executable("rebar") of
+        false ->
+            io:format("ERROR: rebar executable not found on system path\n"),
+            halt(1);
+        _ ->
+            ok
+    end.
 
 verify_empty_directory() ->
     case filelib:wildcard("*") of
