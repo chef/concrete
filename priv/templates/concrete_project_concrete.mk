@@ -7,15 +7,22 @@ ifeq ($(ERL),)
 $(error "Erlang not available on this system")
 endif
 
-REBAR=$(shell which rebar)
-
 # If building on travis, use the rebar in the current directory
 ifeq ($(TRAVIS),true)
-REBAR=$(CURDIR)/rebar
+REBAR = $(CURDIR)/rebar
 endif
 
+# If there is a rebar in the current directory, use it
+ifeq ($(wildcard rebar),rebar)
+REBAR = $(CURDIR)/rebar
+endif
+
+# Fallback to rebar on PATH
+REBAR ?= $(shell which rebar)
+
+# And finally, prep to download rebar if all else fails
 ifeq ($(REBAR),)
-REBAR=$(CURDIR)/rebar
+REBAR = $(CURDIR)/rebar
 endif
 
 # =============================================================================
