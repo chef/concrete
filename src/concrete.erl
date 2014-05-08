@@ -52,30 +52,27 @@ concrete_init(Dir) ->
     ok.
 
 render_project(Name) ->
-    CmdFmt = "create template_dir=~s template=concrete_project name=~s",
-    Cmd = io_lib:format(CmdFmt, [template_dir(), Name]),
-    rebar_cmd_in_dir(Cmd, Name).
+    Cmd = [rebar_exe(),
+           "create",
+           "template_dir=" ++ template_dir(),
+           "template=concrete_project",
+           "name=" ++ Name],
+    handle_cmd(run_cmd(Cmd, Name)).
     
 render_active(Name, true) ->
-    CmdFmt = "create --force template_dir=~s template=concrete_app name=~s",
-    Cmd = io_lib:format(CmdFmt, [template_dir(), Name]),
-    rebar_cmd_in_dir(Cmd, Name);
+    Cmd = [rebar_exe(),
+           "create",
+           "--force",
+           "template_dir=" ++ template_dir(),
+           "template=concrete_app",
+           "name=" ++ Name],
+    handle_cmd(run_cmd(Cmd, Name));
 render_active(_Name, _) ->
     ok.
 
-rebar_cmd_in_dir(Cmd, Dir) ->
-    %% use rebar bundled with concrete
-    Rebar = filename:join(concrete_dir(), "rebar"),
-    FullCmd = Rebar ++ " " ++ Cmd,
-    cmd_in_dir(FullCmd, Dir).
+rebar_exe() ->
+    filename:join(concrete_dir(), "rebar").
 
-cmd_in_dir(Cmd, Dir) ->
-    {ok, CWD} = file:get_cwd(),
-    file:set_cwd(Dir),
-    Res = os:cmd(Cmd),
-    file:set_cwd(CWD),
-    Res.
-    
 create_directory(Dir) ->
     case filelib:is_file(Dir) of
         false ->
@@ -154,3 +151,27 @@ yes_no(S) ->
         _ ->
             false
     end.
+
+run_cmd(CmdList, Dir) ->
+    Cmd = string:join(CmdList, " "),
+    Port = erlang:open_port({spawn, Cmd},
+                            [{line, 256}, exit_status, stderr_to_stdout,
+                             {cd, Dir}]),
+    {gather_data(Port, 10000, []), Cmd}.
+
+gather_data(Port, Timeout, Acc) ->
+    receive
+        {Port, {exit_status, Status}} ->
+            {Status, erlang:iolist_to_binary(lists:reverse(Acc))};
+        {Port, {data, {eol, Line}}} ->
+            gather_data(Port, Timeout, ["\n", Line | Acc])
+    after Timeout ->
+            timeout
+    end.
+
+handle_cmd({{0, _}, _}) ->
+    ok;
+handle_cmd({{Status, Out}, Cmd}) ->
+    io:format("ERROR: command failed with status ~p.\ncommand: ~s\noutput:\n~s\n\n",
+              [Status, Cmd, Out]),
+    halt(1).
