@@ -1,6 +1,6 @@
 # {{name}} #
 
-{{description}}
+Everything you wanted to know about {{name}} but were afraid to ask.
 
 ## Author(s) ##
 
@@ -8,4 +8,4 @@
 
 ## Copyright ##
 
-Copyright (c) {{copyright_year}} Opscode, Inc.  All rights reserved.
+Copyright (c) {{copyright_year}} YOU.  All rights reserved.
