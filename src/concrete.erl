@@ -43,7 +43,6 @@ main(_Args) ->
 
 concrete_init(Dir) ->
     create_directory(Dir),
-    verify_rebar(),
     io:format("Creating the ~s project with concrete\n\n", [Dir]),
     Name = strip(Dir),
     ActiveApp = yes_no(io:get_line("Would you like an active application? (y/n): ")),
@@ -53,16 +52,22 @@ concrete_init(Dir) ->
     ok.
 
 render_project(Name) ->
-    CmdFmt = "rebar create template_dir=~s template=concrete_project name=~s",
+    CmdFmt = "create template_dir=~s template=concrete_project name=~s",
     Cmd = io_lib:format(CmdFmt, [template_dir(), Name]),
-    cmd_in_dir(Cmd, Name).
+    rebar_cmd_in_dir(Cmd, Name).
     
 render_active(Name, true) ->
-    CmdFmt = "rebar create --force template_dir=~s template=concrete_app name=~s",
+    CmdFmt = "create --force template_dir=~s template=concrete_app name=~s",
     Cmd = io_lib:format(CmdFmt, [template_dir(), Name]),
-    cmd_in_dir(Cmd, Name);
+    rebar_cmd_in_dir(Cmd, Name);
 render_active(_Name, _) ->
     ok.
+
+rebar_cmd_in_dir(Cmd, Dir) ->
+    %% use rebar bundled with concrete
+    Rebar = filename:join(concrete_dir(), "rebar"),
+    FullCmd = Rebar ++ " " ++ Cmd,
+    cmd_in_dir(FullCmd, Dir).
 
 cmd_in_dir(Cmd, Dir) ->
     {ok, CWD} = file:get_cwd(),
@@ -71,15 +76,6 @@ cmd_in_dir(Cmd, Dir) ->
     file:set_cwd(CWD),
     Res.
     
-verify_rebar() ->
-    case os:find_executable("rebar") of
-        false ->
-            io:format("ERROR: rebar executable not found on system path\n"),
-            halt(1);
-        _ ->
-            ok
-    end.
-
 create_directory(Dir) ->
     case filelib:is_file(Dir) of
         false ->
