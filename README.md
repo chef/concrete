@@ -86,49 +86,46 @@ to your `rebar.config` file:
    ```
      git clone git://github.com/opscode/concrete.git
      cd concrete
-     rebar compile escriptize
+     make
      # now add `pwd` to your PATH
    ```
 
 Is this thing on? Let's find out!
 
  ```
- mkdir infodata
+ concrete init infodata
  cd infodata
- concrete init
- # now look around and try running 'make'
+ make
  ```
 
 ## Concrete Examples ##
 
 ### Initialize a new project with `concrete init` ###
 
-0. Make sure the `concrete` escript is on your `PATH`.
-1. Create a directory for your new project. It is important that it is
-   empty.
-2. Run `concrete init` and provide name and description when
-   prompted (newline terminates input).
+1. Make sure the `concrete` escript is on your `PATH`.
+2. Run `concrete init NAME`, where `NAME` is your desired project
+   name. A directory named `NAME` will be created in your current
+   working directory with project skeleton. You will be asked if you
+   want an active application. If you answer "yes", then the generated
+   project will include a supervisor and the application will be
+   startable. In this case, concrete will also generate a
+   `relx.config` and you can build an OTP release via `make rel`.
 
 The whole sequence should look like this:
 
 ```
- $ mkdir apples
- $ cd apples
- $ concrete init
- Initialize a new project with concrete
+$ concrete init apples
+Creating the apples project with concrete
 
- Project name: apples
- Short Description:
- What do you want, this is just an example
- Creating apples via 'rebar create template=concrete_project name=apples description="What do you want, this is just an example"'
- Now try: make
+Would you like an active application? (y/n): y
+Now try: cd apples; make
 
- $ ls -a
+$ ls -a apples
    .concrete/  .gitignore  Makefile  README.md  concrete.mk include/  priv/  rebar.config  rebar.config.script  src/  test/
 ```
 
 **important** Add the files that concrete created for you to git.
-Be sure that you `git add1 the following:
+Be sure that you `git add` the following:
 
 ```
 git add concrete.mk
@@ -169,7 +166,7 @@ still be easy to pickup updates when desired.
 
 |                      |                                          |
 |:---------------------|:-----------------------------------------|
-| **Copyright:**       | Copyright (c) 2013 Opscode, Inc.
+| **Copyright:**       | Copyright (c) 2013-2014 Opscode, Inc.
 | **License:**         | Apache License, Version 2.0
 
 See [LICENSE](./LICENSE).

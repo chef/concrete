@@ -2,7 +2,7 @@
 %% vim: set ts=4 sts=4 sw=4 et:
 %%
 %% @author Seth Falcon
-%% @copyright 2013 Opscode, Inc.
+%% @copyright 2013-2014 CHEF Software, Inc.
 %%
 %% @doc concrete escript module.
 %% concrete is intended to enhance rebar based Erlang projects by
@@ -31,45 +31,55 @@
          main/1
         ]).
 
-main(["init"]) ->
-    concrete_init();
+main(["init", Dir]) ->
+    concrete_init(Dir);
 main(["update"]) ->
     concrete_update();
 main(_Args) ->
     io:format("Sorry, you'll have to call me like one of the examples below:\n"
-              "concrete init\n"
+              "concrete init DIR\n"
               "concrete update\n"),
     halt(1).
 
-concrete_init() ->
-    verify_empty_directory(),
-    verify_rebar(),
-    io:format("Initialize a new project with concrete\n\n"),
-    Name = strip(io:get_line("Project name: ")),
-    Desc = strip(io:get_line("Short Description:\n")),
-    CmdFmt = "rebar create template_dir=~s template=concrete_project name=~s description=\"~s\"",
-    Cmd = io_lib:format(CmdFmt, [template_dir(), Name, Desc]),
-    io:format("Creating ~s via '~s'~n", [Name, Cmd]),
-    os:cmd(Cmd),
-    io:format("Now try: make\n"),
+concrete_init(Dir) ->
+    create_directory(Dir),
+    io:format("Creating the ~s project with concrete\n\n", [Dir]),
+    Name = strip(Dir),
+    ActiveApp = yes_no(io:get_line("Would you like an active application? (y/n): ")),
+    render_project(Name),
+    render_active(Name,ActiveApp),
+    io:format("Now try: cd ~s; make\n", [Dir]),
     ok.
 
-verify_rebar() ->
-    case os:find_executable("rebar") of
-        false ->
-            io:format("ERROR: rebar executable not found on system path\n"),
-            halt(1);
-        _ ->
-            ok
-    end.
+render_project(Name) ->
+    Cmd = [rebar_exe(),
+           "create",
+           "template_dir=" ++ template_dir(),
+           "template=concrete_project",
+           "name=" ++ Name],
+    handle_cmd(run_cmd(Cmd, Name)).
+    
+render_active(Name, true) ->
+    Cmd = [rebar_exe(),
+           "create",
+           "--force",
+           "template_dir=" ++ template_dir(),
+           "template=concrete_app",
+           "name=" ++ Name],
+    handle_cmd(run_cmd(Cmd, Name));
+render_active(_Name, _) ->
+    ok.
 
-verify_empty_directory() ->
-    case filelib:wildcard("*") of
-        [] ->
-            ok;
-        Files ->
-            io:format("ERROR: concrete init wants an empty directory\n"
-                      "       But we found: ~p\n", [Files]),
+rebar_exe() ->
+    filename:join(concrete_dir(), "rebar").
+
+create_directory(Dir) ->
+    case filelib:is_file(Dir) of
+        false ->
+            filelib:ensure_dir(filename:join(Dir, "stub"));
+        true ->
+            io:format("ERROR: concrete init wants to create '~s', but it already exists\n",
+                      [Dir]),
             halt(1)
     end.
 
@@ -132,4 +142,36 @@ template_dir() ->
 concrete_dir() ->
     %% Note that code:which and code:priv_dir return odd looking
     %% results when run via an escriptized.
-    filename:dirname(escript:script_name()).
+    filename:absname(filename:dirname(escript:script_name())).
+
+yes_no(S) ->
+    case hd(string:to_lower(strip(S))) of
+        $y ->
+            true;
+        _ ->
+            false
+    end.
+
+run_cmd(CmdList, Dir) ->
+    Cmd = string:join(CmdList, " "),
+    Port = erlang:open_port({spawn, Cmd},
+                            [{line, 256}, exit_status, stderr_to_stdout,
+                             {cd, Dir}]),
+    {gather_data(Port, 10000, []), Cmd}.
+
+gather_data(Port, Timeout, Acc) ->
+    receive
+        {Port, {exit_status, Status}} ->
+            {Status, erlang:iolist_to_binary(lists:reverse(Acc))};
+        {Port, {data, {eol, Line}}} ->
+            gather_data(Port, Timeout, ["\n", Line | Acc])
+    after Timeout ->
+            timeout
+    end.
+
+handle_cmd({{0, _}, _}) ->
+    ok;
+handle_cmd({{Status, Out}, Cmd}) ->
+    io:format("ERROR: command failed with status ~p.\ncommand: ~s\noutput:\n~s\n\n",
+              [Status, Cmd, Out]),
+    halt(1).

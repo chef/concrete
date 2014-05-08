@@ -1,0 +1,12 @@
+{variables, [
+  {name, "myproject"},
+  {copyright_year, "2014"},
+  {author_name, "First Last"},
+  {author_email,"you@example.net"},
+  {description, "Fill in description of project here."}
+]}.
+
+{template, "concrete_app_relx.config", "relx.config"}.
+{template, "concrete_app_app.erl", "src/{{name}}_app.erl"}.
+{template, "concrete_app_sup.erl", "src/{{name}}_sup.erl"}.
+{template, "concrete_app_app.src", "src/{{name}}.app.src"}.
