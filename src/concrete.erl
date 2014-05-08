@@ -47,13 +47,27 @@ concrete_init() ->
     io:format("Initialize a new project with concrete\n\n"),
     Name = strip(io:get_line("Project name: ")),
     Desc = strip(io:get_line("Short Description:\n")),
-    CmdFmt = "rebar create template_dir=~s template=concrete_project name=~s description=\"~s\"",
-    Cmd = io_lib:format(CmdFmt, [template_dir(), Name, Desc]),
-    io:format("Creating ~s via '~s'~n", [Name, Cmd]),
-    os:cmd(Cmd),
+    ActiveApp = yes_no(io:get_line("Active application? (y/n): ")),
+    render_project(Name, Desc),
+    render_active(Name, Desc, ActiveApp),
     io:format("Now try: make\n"),
     ok.
 
+render_project(Name, Desc) ->
+    CmdFmt = "rebar create template_dir=~s template=concrete_project name=~s description=\"~s\"",
+    Cmd = io_lib:format(CmdFmt, [template_dir(), Name, Desc]),
+    io:format("Creating ~s via '~s'~n", [Name, Cmd]),
+    os:cmd(Cmd).
+    
+render_active(Name, Desc, true) ->
+    CmdFmt = "rebar create --force template_dir=~s template=concrete_app name=~s description=\"~s\"",
+    Cmd = io_lib:format(CmdFmt, [template_dir(), Name, Desc]),
+    io:format("Creating ~s via '~s'~n", [Name, Cmd]),
+    os:cmd(Cmd);
+render_active(_Name, _Desc, _) ->
+    ok.
+
+    
 verify_rebar() ->
     case os:find_executable("rebar") of
         false ->
@@ -133,3 +147,11 @@ concrete_dir() ->
     %% Note that code:which and code:priv_dir return odd looking
     %% results when run via an escriptized.
     filename:dirname(escript:script_name()).
+
+yes_no(S) ->
+    case hd(string:to_lower(strip(S))) of
+        $y ->
+            true;
+        _ ->
+            false
+    end.
