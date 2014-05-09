@@ -1,3 +1,50 @@
+# =============================================================================
+# Verify that the programs we need to run are installed on this system
+# =============================================================================
+ERL = $(shell which erl)
+
+ifeq ($(ERL),)
+$(error "Erlang not available on this system")
+endif
+
+# If building on travis, use the rebar in the current directory
+ifeq ($(TRAVIS),true)
+REBAR = $(CURDIR)/rebar
+endif
+
+# If there is a rebar in the current directory, use it
+ifeq ($(wildcard rebar),rebar)
+REBAR = $(CURDIR)/rebar
+endif
+
+# Fallback to rebar on PATH
+REBAR ?= $(shell which rebar)
+
+# And finally, prep to download rebar if all else fails
+ifeq ($(REBAR),)
+REBAR = $(CURDIR)/rebar
+endif
+
+# =============================================================================
+# Handle version discovery
+# =============================================================================
+
+# We have a problem that we only have 10 minutes to build on travis
+# and those travis boxes are quite small. This is ok for the fast
+# dialyzer on R15 and above. However on R14 and below we have the
+# problem that travis times out. The code below lets us not run
+# dialyzer on R14
+OTP_VSN=$(shell erl -noshell -eval 'io:format("~p", [erlang:system_info(otp_release)]), erlang:halt(0).' | perl -lne 'print for /R(\d+).*/g')
+TRAVIS_SLOW=$(shell expr $(OTP_VSN) \<= 15 )
+
+ifeq ($(TRAVIS_SLOW), 0)
+DIALYZER=$(shell which dialyzer)
+else
+DIALYZER=: not running dialyzer on R14 or R15
+endif
+
+REBAR_URL=https://github.com/rebar/rebar/wiki/rebar
+
 DEPS ?= $(CURDIR)/deps
 
 DIALYZER_OPTS ?= -Wunderspecs
@@ -35,7 +82,15 @@ ERLANG_DIALYZER_APPS = asn1 \
                        webtool \
                        xmerl
 
-all: .concrete/DEV_MODE compile eunit dialyzer $(ALL_HOOK)
+all: all_but_dialyzer dialyzer
+
+all_but_dialyzer: .concrete/DEV_MODE compile eunit $(ALL_HOOK)
+
+$(REBAR):
+	curl -Lo rebar $(REBAR_URL) || wget $(REBAR_URL)
+	chmod a+x rebar
+
+get-rebar: $(REBAR)
 
 .concrete/DEV_MODE:
 	@mkdir -p .concrete
@@ -43,26 +98,26 @@ all: .concrete/DEV_MODE compile eunit dialyzer $(ALL_HOOK)
 
 # Clean ebin and .eunit of this project
 clean:
-	@rebar clean skip_deps=true
+	@$(REBAR) clean skip_deps=true
 
 # Clean this project and all deps
 allclean:
-	@rebar clean
+	@$(REBAR) clean
 
 compile: $(DEPS)
-	@rebar compile
+	@$(REBAR) compile
 
 $(DEPS):
-	@rebar get-deps
+	@$(REBAR) get-deps
 
 # Full clean and removal of all deps. Remove deps first to avoid
 # wasted effort of cleaning deps before nuking them.
 distclean:
 	@rm -rf deps $(DEPS_PLT)
-	@rebar clean
+	@$(REBAR) clean
 
 eunit:
-	@rebar skip_deps=true eunit
+	@$(REBAR) skip_deps=true eunit
 
 test: eunit
 
@@ -84,9 +139,42 @@ endif
 	@echo "now try your build again"
 
 doc:
-	@rebar doc skip_deps=true
+	@$(REBAR) doc skip_deps=true
+
+shell: deps compile
+# You often want *rebuilt* rebar tests to be available to the
+# shell you have to call eunit (to get the tests
+# rebuilt). However, eunit runs the tests, which probably
+# fails (thats probably why You want them in the shell). This
+# runs eunit but tells make to ignore the result.
+	- @$(REBAR) skip_deps=true eunit
+	@$(ERL) $(ERLFLAGS)
+
+pdf:
+	pandoc README.md -o README.pdf
 
 tags:
 	find src deps -name "*.[he]rl" -print | etags -
 
-.PHONY: all compile eunit test dialyzer clean allclean distclean doc tags
+# Releases via relx. we will install a local relx, as we do for rebar,
+# if we don't find one on PATH.
+RELX_CONFIG ?= $(CURDIR)/relx.config
+RELX = $(shell which relx)
+RELX_OPTS ?=
+RELX_OUTPUT_DIR ?= _rel
+ifeq ($(RELX),)
+RELX = $(CURDIR)/relx
+endif
+RELX_URL = https://github.com/erlware/relx/releases/download/v0.6.0/relx
+
+$(RELX):
+	curl -Lo relx $(RELX_URL) || wget $(RELX_URL)
+	chmod a+x relx
+
+rel: relclean all_but_dialyzer $(RELX)
+	@$(RELX) -c $(RELX_CONFIG) -o $(RELX_OUTPUT_DIR) $(RELX_OPTS)
+
+relclean:
+	rm -rf $(RELX_OUTPUT_DIR)
+
+.PHONY: all all_but_dialyzer compile eunit test dialyzer clean allclean relclean distclean doc tags get-rebar
