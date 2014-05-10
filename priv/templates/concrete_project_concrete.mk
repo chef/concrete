@@ -25,22 +25,19 @@ ifeq ($(REBAR),)
 REBAR = $(CURDIR)/rebar
 endif
 
-# =============================================================================
-# Handle version discovery
-# =============================================================================
-
-# We have a problem that we only have 10 minutes to build on travis
-# and those travis boxes are quite small. This is ok for the fast
-# dialyzer on R15 and above. However on R14 and below we have the
-# problem that travis times out. The code below lets us not run
-# dialyzer on R14
-OTP_VSN=$(shell erl -noshell -eval 'io:format("~p", [erlang:system_info(otp_release)]), erlang:halt(0).' | perl -lne 'print for /R(\d+).*/g')
-TRAVIS_SLOW=$(shell expr $(OTP_VSN) \<= 15 )
-
-ifeq ($(TRAVIS_SLOW), 0)
-DIALYZER=$(shell which dialyzer)
-else
-DIALYZER=: not running dialyzer on R14 or R15
+# For use on Travis CI, skip dialyzer for R14 and R15. Newer versions
+# have a faster dialyzer that is less likely to cause a build timeout.
+DIALYZER = dialyzer
+R14 = $(findstring R14,$(TRAVIS_OTP_RELEASE))
+R15 = $(findstring R15,$(TRAVIS_OTP_RELEASE))
+ifneq ($(R14),)
+DIALYZER = echo "SKIPPING dialyzer"
+endif
+ifneq ($(R15),)
+DIALYZER = echo "SKIPPING dialyzer"
+endif
+ifneq ($(SKIP_DIALYZER),)
+DIALYZER = echo "SKIPPING dialyzer"
 endif
 
 REBAR_URL=https://github.com/rebar/rebar/wiki/rebar
@@ -124,18 +121,18 @@ test: eunit
 # Only include local PLT if we have deps that we are going to analyze
 ifeq ($(strip $(DIALYZER_DEPS)),)
 dialyzer: ~/.dialyzer_plt
-	@dialyzer $(DIALYZER_OPTS) -r ebin
+	@$(DIALYZER) $(DIALYZER_OPTS) -r ebin
 else
 dialyzer: ~/.dialyzer_plt $(DEPS_PLT)
-	@dialyzer $(DIALYZER_OPTS) --plts ~/.dialyzer_plt $(DEPS_PLT) -r ebin
+	@$(DIALYZER) $(DIALYZER_OPTS) --plts ~/.dialyzer_plt $(DEPS_PLT) -r ebin
 
 $(DEPS_PLT):
-	@dialyzer --build_plt $(DIALYZER_DEPS) --output_plt $(DEPS_PLT)
+	@$(DIALYZER) --build_plt $(DIALYZER_DEPS) --output_plt $(DEPS_PLT)
 endif
 
 ~/.dialyzer_plt:
-	@echo "ERROR: Missing ~/.dialyzer_plt. Please wait while a new PLT is compiled."
-	dialyzer --build_plt --apps $(ERLANG_DIALYZER_APPS)
+	@echo "Missing ~/.dialyzer_plt. Please wait while a new PLT is compiled."
+	$(DIALYZER) --build_plt --apps $(ERLANG_DIALYZER_APPS)
 	@echo "now try your build again"
 
 doc:
