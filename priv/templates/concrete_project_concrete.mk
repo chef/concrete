@@ -44,7 +44,7 @@ REBAR_URL=https://github.com/rebar/rebar/wiki/rebar
 
 DEPS ?= $(CURDIR)/deps
 
-DIALYZER_OPTS ?= -Wunderspecs
+DIALYZER_OPTS ?=
 
 # Find all the deps the project has by searching the deps dir
 ALL_DEPS = $(notdir $(wildcard deps/*))
@@ -64,19 +64,14 @@ ERLANG_DIALYZER_APPS = asn1 \
                        edoc \
                        erts \
                        eunit \
-                       gs \
-                       hipe \
                        inets \
                        kernel \
                        mnesia \
-                       observer \
                        public_key \
-                       runtime_tools \
                        ssl \
                        stdlib \
                        syntax_tools \
                        tools \
-                       webtool \
                        xmerl
 
 all: all_but_dialyzer dialyzer
