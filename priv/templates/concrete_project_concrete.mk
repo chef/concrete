@@ -131,19 +131,10 @@ endif
 	@echo "now try your build again"
 
 doc:
-	@$(REBAR) doc skip_deps=true
+	@$(REBARC) doc skip_deps=true
 
-shell: deps compile
-# You often want *rebuilt* rebar tests to be available to the
-# shell you have to call eunit (to get the tests
-# rebuilt). However, eunit runs the tests, which probably
-# fails (thats probably why You want them in the shell). This
-# runs eunit but tells make to ignore the result.
-	- @$(REBAR) skip_deps=true eunit
-	@$(ERL) $(ERLFLAGS)
-
-pdf:
-	pandoc README.md -o README.pdf
+shell:
+	@$(ERL) -pa deps/*/ebin ebin .eunit
 
 tags:
 	find src deps -name "*.[he]rl" -print | etags -
