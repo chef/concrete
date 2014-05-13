@@ -166,7 +166,17 @@ $(RELX):
 rel: relclean all_but_dialyzer $(RELX)
 	@$(RELX) -c $(RELX_CONFIG) -o $(RELX_OUTPUT_DIR) $(RELX_OPTS)
 
+devrel: rel
+devrel: lib_dir=$(wildcard $(RELX_OUTPUT_DIR)/lib/delivery-* )
+devrel:
+	@/bin/echo -n Symlinking deps and apps into release
+	@rm -rf $(lib_dir); mkdir -p $(lib_dir)
+	@ln -sf `pwd`/ebin $(lib_dir)
+	@ln -sf `pwd`/priv $(lib_dir)
+	@ln -sf `pwd`/src $(lib_dir)
+
 relclean:
 	rm -rf $(RELX_OUTPUT_DIR)
 
-.PHONY: all all_but_dialyzer compile eunit test dialyzer clean allclean relclean distclean doc tags get-rebar
+
+.PHONY: all all_but_dialyzer compile eunit test dialyzer clean allclean relclean distclean doc tags get-rebar rel devrel
