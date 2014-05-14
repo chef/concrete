@@ -46,17 +46,18 @@ concrete_init(Dir) ->
     io:format("Creating the ~s project with concrete\n\n", [Dir]),
     Name = strip(Dir),
     ActiveApp = yes_no(io:get_line("Would you like an active application? (y/n): ")),
-    render_project(Name),
-    render_active(Name,ActiveApp),
+    render_project(Name, ActiveApp),
+    render_active(Name, ActiveApp),
     io:format("Now try: cd ~s; make\n", [Dir]),
     ok.
 
-render_project(Name) ->
+render_project(Name, ActiveApp) ->
     Cmd = [rebar_exe(),
            "create",
            "template_dir=" ++ template_dir(),
            "template=concrete_project",
-           "name=" ++ Name],
+           "name=" ++ Name,
+           "is_active=" ++ atom_to_list(ActiveApp)],
     handle_cmd(run_cmd(Cmd, Name)).
     
 render_active(Name, true) ->
