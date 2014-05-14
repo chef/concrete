@@ -25,6 +25,16 @@ ifeq ($(REBAR),)
 REBAR = $(CURDIR)/rebar
 endif
 
+# If we have a rebar.config.lock file, use it!
+ifeq ($(wildcard rebar.config.lock),rebar.config.lock)
+REBAR_CONFIG = rebar.config.lock
+else
+REBAR_CONFIG = rebar.config
+endif
+
+# This is the variable to use to respect the lock file
+REBARC = $(REBAR) -C $(REBAR_CONFIG)
+
 # For use on Travis CI, skip dialyzer for R14 and R15. Newer versions
 # have a faster dialyzer that is less likely to cause a build timeout.
 DIALYZER = dialyzer
@@ -44,7 +54,7 @@ REBAR_URL=https://github.com/rebar/rebar/wiki/rebar
 
 DEPS ?= $(CURDIR)/deps
 
-DIALYZER_OPTS ?= -Wunderspecs
+DIALYZER_OPTS ?=
 
 # Find all the deps the project has by searching the deps dir
 ALL_DEPS = $(notdir $(wildcard deps/*))
@@ -64,20 +74,17 @@ ERLANG_DIALYZER_APPS = asn1 \
                        edoc \
                        erts \
                        eunit \
-                       gs \
-                       hipe \
                        inets \
                        kernel \
                        mnesia \
-                       observer \
                        public_key \
-                       runtime_tools \
                        ssl \
                        stdlib \
                        syntax_tools \
                        tools \
-                       webtool \
                        xmerl
+
+PROJ = $(notdir $(CURDIR))
 
 all: all_but_dialyzer dialyzer
 
@@ -95,26 +102,27 @@ get-rebar: $(REBAR)
 
 # Clean ebin and .eunit of this project
 clean:
-	@$(REBAR) clean skip_deps=true
+	@$(REBARC) clean skip_deps=true
 
 # Clean this project and all deps
+# Newer rebar requires -r to recursively clean
 allclean:
-	@$(REBAR) clean
+	@($(REBARC) --help 2>&1|grep -q recursive && $(REBARC) -r clean) || $(REBARC) clean
 
 compile: $(DEPS)
-	@$(REBAR) compile
+	@$(REBARC) compile
 
 $(DEPS):
-	@$(REBAR) get-deps
+	@$(REBARC) get-deps
 
 # Full clean and removal of all deps. Remove deps first to avoid
 # wasted effort of cleaning deps before nuking them.
 distclean:
 	@rm -rf deps $(DEPS_PLT)
-	@$(REBAR) clean
+	@$(REBARC) clean
 
 eunit:
-	@$(REBAR) skip_deps=true eunit
+	@$(REBARC) skip_deps=true eunit
 
 test: eunit
 
@@ -136,19 +144,10 @@ endif
 	@echo "now try your build again"
 
 doc:
-	@$(REBAR) doc skip_deps=true
+	@$(REBARC) doc skip_deps=true
 
-shell: deps compile
-# You often want *rebuilt* rebar tests to be available to the
-# shell you have to call eunit (to get the tests
-# rebuilt). However, eunit runs the tests, which probably
-# fails (thats probably why You want them in the shell). This
-# runs eunit but tells make to ignore the result.
-	- @$(REBAR) skip_deps=true eunit
-	@$(ERL) $(ERLFLAGS)
-
-pdf:
-	pandoc README.md -o README.pdf
+shell:
+	@$(ERL) -pa deps/*/ebin ebin .eunit
 
 tags:
 	find src deps -name "*.[he]rl" -print | etags -
@@ -171,7 +170,39 @@ $(RELX):
 rel: relclean all_but_dialyzer $(RELX)
 	@$(RELX) -c $(RELX_CONFIG) -o $(RELX_OUTPUT_DIR) $(RELX_OPTS)
 
+devrel: rel
+devrel: lib_dir=$(wildcard $(RELX_OUTPUT_DIR)/lib/$(PROJ)-* )
+devrel:
+	@/bin/echo -n Symlinking deps and apps into release
+	@rm -rf $(lib_dir); mkdir -p $(lib_dir)
+	@ln -sf `pwd`/ebin $(lib_dir)
+	@ln -sf `pwd`/priv $(lib_dir)
+	@ln -sf `pwd`/src $(lib_dir)
+
 relclean:
 	rm -rf $(RELX_OUTPUT_DIR)
 
-.PHONY: all all_but_dialyzer compile eunit test dialyzer clean allclean relclean distclean doc tags get-rebar
+## Release prep and dep locking. These recipes use $(REBAR), not
+## $(REBARC) in order to NOT use the lock file since they are
+## concerned with the task of updating the lock file.
+BUMP ?= patch
+prepare_release: distclean unlocked_deps unlocked_compile update_locked_config rel
+	@echo 'release prepared, bumping version'
+	@$(REBAR) bump-rel-version version=$(BUMP)
+
+unlocked_deps:
+	@echo 'Fetching deps as: rebar -C rebar.config'
+	@$(REBAR) -C rebar.config get-deps
+
+# When running the prepare_release target, we have to ensure that a
+# compile occurs using the unlocked rebar.config. If a dependency has
+# been removed, then using the locked version that contains the stale
+# dep will cause a compile error.
+unlocked_compile:
+	@$(REBAR) -C rebar.config compile
+
+update_locked_config:
+	@$(REBAR) lock-deps skip_deps=true
+
+
+.PHONY: all all_but_dialyzer compile eunit test dialyzer clean allclean relclean distclean doc tags get-rebar rel devrel

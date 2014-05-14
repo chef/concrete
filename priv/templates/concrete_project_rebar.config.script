@@ -6,7 +6,7 @@
 %%
 %% YOU SHOULDN'T NEED TO EDIT THIS FILE
 %%
-{concrete_rebar_script_version, 1}.
+{concrete_rebar_script_version, 2}.
 
 %% We need the following helper function to merge dev only options
 %% into the values provided by rebar.config.
@@ -15,7 +15,9 @@
 %% in proplist `C'. Don't duplicate items. New Items are added to the
 %% front of existing items. It is an error if the value at `Key' is
 %% not a list in `C'.
-MergeConfig = fun({Key, ToAdd}, C) ->
+MergeConfig = fun(skip, C) ->
+                      C;
+                 ({Key, ToAdd}, C) ->
                       case lists:keyfind(Key, 1, C) of
                           false ->
                               lists:keystore(Key, 1, C, {Key, ToAdd});
@@ -24,7 +26,7 @@ MergeConfig = fun({Key, ToAdd}, C) ->
                               ToAdd1 = [ I || I <- ToAdd, not lists:member(I, List) ],
                               lists:keystore(Key, 1, C, {Key, ToAdd1 ++ List })
                       end
-              end.
+              end,
 
 %% -- Add development only options if we are a top-level build  --
 %%
@@ -35,52 +37,57 @@ MergeConfig = fun({Key, ToAdd}, C) ->
 
 %% This macro can be used to conditionally enable code (e.g. tests)
 %% that depend on development only dependencies.
-ErlOpts = {erl_opts, [
-    {d, 'DEV_ONLY'}
-]},
+ErlOpts = {erl_opts, [{d, 'DEV_ONLY'}]},
 
 %% Development only dependencies can be specified in the main
 %% rebar.config. This file should not need to be edited directly.
 DevOnlyDeps = case lists:keyfind(dev_only_deps, 1, CONFIG) of
                   false ->
-                      [];
+                      skip;
                   {dev_only_deps, DOD} ->
-                      DOD
+                      {deps, DOD}
               end,
 
-EdownMe =
-fun(C) ->
-        %% Unless rebar.config contains `{use_edown, false}', we'll
-        %% wire it up. However, we'll only add the required edoc_opts
-        %% if none have been provided.
-        case proplists:get_value(use_edown, C) of
-            false ->
-                C;
-            _ ->
-                %% only add edoc_opts if none are present
-                C1 = case lists:keymember(edoc_opts, 1, C) of
-                         true ->
-                             C;
-                         false ->
-                             MergeConfig({edoc_opts, [{doclet, edown_doclet}]}, C)
-                     end,
-                MergeConfig({deps,
-                             [{edown, ".*",
-                               {git, "git://github.com/seth/edown.git",
-                                {branch, "master"}}}]},
-                            C1)
-        end
-end,
+EDown = case proplists:get_value(use_edown, CONFIG) of
+               false ->
+                   skip;
+               _ ->
+                DocOpts = case lists:keymember(edoc_opts, 1, CONFIG) of
+                              true ->
+                                  skip;
+                              false ->
+                                  {edoc_opts, [{doclet, edown_doclet}]}
+                          end,
+                [DocOpts,
+                 {deps,
+                  [{edown, ".*",
+                    {git, "git://github.com/seth/edown.git",
+                     {branch, "master"}}}]}]
+           end,
 
-Deps = {deps, DevOnlyDeps},
+LockDeps = case proplists:get_value(use_lock_deps, CONFIG) of
+               false ->
+                   skip;
+               V ->
+                   Tag = case V of
+                             {_, _} = T -> T;
+                             _ -> {branch, "master"}
+                         end,
+                   [{deps,
+                     [{rebar_lock_deps_plugin, ".*",
+                       {git, "git://github.com/seth/rebar_lock_deps_plugin.git",
+                        Tag}}]},
+                    {plugins, [rebar_lock_deps_plugin]}]
+           end,
 
 ConfigPath = filename:dirname(SCRIPT),
 DevMarker = filename:join([ConfigPath, ".concrete/DEV_MODE"]),
 
 case filelib:is_file(DevMarker) of
     true ->
+        ToMerge = lists:flatten([DevOnlyDeps, LockDeps, EDown, ErlOpts]),
         lists:foldl(fun(I, C) -> MergeConfig(I, C) end,
-                    EdownMe(CONFIG), [Deps, ErlOpts]);
+                    CONFIG, ToMerge);
     false ->
         %% If the .concrete/ marker is not present, this script simply
         %% returns the config specified in rebar.config. This will be
