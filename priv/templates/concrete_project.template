@@ -3,6 +3,7 @@
   {copyright_year, "2013"},
   {author_name, "First Last"},
   {author_email,"you@example.net"},
+  {is_active, false},
   {description, "Fill in description of project here."}
 ]}.
 {dir, "src"}.
