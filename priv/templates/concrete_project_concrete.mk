@@ -73,7 +73,6 @@ ERLANG_DIALYZER_APPS = asn1 \
                        crypto \
                        edoc \
                        erts \
-                       eunit \
                        inets \
                        kernel \
                        mnesia \
