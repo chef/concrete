@@ -1,6 +1,6 @@
 {variables, [
   {name, "myproject"},
-  {copyright_year, "2013"},
+  {copyright_year, "2014"},
   {author_name, "First Last"},
   {author_email,"you@example.net"},
   {is_active, false},
