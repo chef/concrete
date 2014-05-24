@@ -172,7 +172,7 @@ rel: relclean all_but_dialyzer $(RELX)
 devrel: rel
 devrel: lib_dir=$(wildcard $(RELX_OUTPUT_DIR)/lib/$(PROJ)-* )
 devrel:
-	@/bin/echo -n Symlinking deps and apps into release
+	@/bin/echo Symlinking deps and apps into release
 	@rm -rf $(lib_dir); mkdir -p $(lib_dir)
 	@ln -sf `pwd`/ebin $(lib_dir)
 	@ln -sf `pwd`/priv $(lib_dir)
