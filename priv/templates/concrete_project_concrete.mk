@@ -160,7 +160,7 @@ RELX_OUTPUT_DIR ?= _rel
 ifeq ($(RELX),)
 RELX = $(CURDIR)/relx
 endif
-RELX_URL = https://github.com/erlware/relx/releases/download/v1.0.1/relx
+RELX_URL = https://github.com/erlware/relx/releases/download/v1.0.2/relx
 
 $(RELX):
 	curl -Lo relx $(RELX_URL) || wget $(RELX_URL)
