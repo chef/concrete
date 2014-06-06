@@ -68,22 +68,34 @@ DIALYZER_DEPS = $(foreach dep,$(DEPS_LIST),deps/$(dep)/ebin)
 
 DEPS_PLT = deps.plt
 
-ERLANG_DIALYZER_APPS = asn1 \
-                       compiler \
-                       crypto \
-                       edoc \
-                       erts \
-                       inets \
-                       kernel \
-                       mnesia \
-                       public_key \
-                       ssl \
-                       stdlib \
-                       syntax_tools \
-                       tools \
-                       xmerl
+ERLANG_DIALYZER_APPS ?= asn1 \
+                        compiler \
+                        crypto \
+                        edoc \
+                        erts \
+                        inets \
+                        kernel \
+                        mnesia \
+                        public_key \
+                        ssl \
+                        stdlib \
+                        syntax_tools \
+                        tools \
+                        xmerl
 
 PROJ = $(notdir $(CURDIR))
+
+# Let's compute $(BASE_PLT_ID) that identifies the base PLT to use for this project
+# and depends on your `$(ERLANG_DIALYZER_APPS)' list and your erlang version
+ERLANG_VERSION := $(shell $(ERL) -eval 'io:format("~s~n", [erlang:system_info(otp_release)]), halt().' -noshell)
+MD5_BIN := $(shell which md5 || which md5sum)
+ifeq ($(MD5_BIN),)
+# neither md5 nor md5sum, we just take the project name
+BASE_PLT_ID := $(PROJ)
+else
+BASE_PLT_ID := $(word 1, $(shell echo $(ERLANG_DIALYZER_APPS) $(ERLANG_VERSION) | $(MD5_BIN)))
+endif
+BASE_PLT := ~/.concrete_dialyzer_plt_$(BASE_PLT_ID)_$(ERLANG_VERSION)
 
 all: all_but_dialyzer dialyzer
 
@@ -127,19 +139,19 @@ test: eunit
 
 # Only include local PLT if we have deps that we are going to analyze
 ifeq ($(strip $(DIALYZER_DEPS)),)
-dialyzer: ~/.dialyzer_plt
+dialyzer: $(BASE_PLT)
 	@$(DIALYZER) $(DIALYZER_OPTS) -r ebin
 else
-dialyzer: ~/.dialyzer_plt $(DEPS_PLT)
-	@$(DIALYZER) $(DIALYZER_OPTS) --plts ~/.dialyzer_plt $(DEPS_PLT) -r ebin
+dialyzer: $(BASE_PLT) $(DEPS_PLT)
+	@$(DIALYZER) $(DIALYZER_OPTS) --plts $(BASE_PLT) $(DEPS_PLT) -r ebin
 
 $(DEPS_PLT):
 	@$(DIALYZER) --build_plt $(DIALYZER_DEPS) --output_plt $(DEPS_PLT)
 endif
 
-~/.dialyzer_plt:
-	@echo "Missing ~/.dialyzer_plt. Please wait while a new PLT is compiled."
-	$(DIALYZER) --build_plt --apps $(ERLANG_DIALYZER_APPS)
+$(BASE_PLT):
+	@echo "Missing $(BASE_PLT). Please wait while a new PLT is compiled."
+	$(DIALYZER) --build_plt --apps $(ERLANG_DIALYZER_APPS) --output_plt $(BASE_PLT)
 	@echo "now try your build again"
 
 doc:
