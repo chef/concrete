@@ -95,7 +95,7 @@ BASE_PLT_ID := $(PROJ)
 else
 BASE_PLT_ID := $(word 1, $(shell echo $(ERLANG_DIALYZER_APPS) $(ERLANG_VERSION) | $(MD5_BIN)))
 endif
-BASE_PLT := ~/.concrete_dialyzer_plt_$(BASE_PLT_ID)_$(ERLANG_VERSION)
+BASE_PLT := ~/.concrete_dialyzer_plt_$(BASE_PLT_ID)_$(ERLANG_VERSION).plt
 
 all: all_but_dialyzer dialyzer
 
