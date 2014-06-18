@@ -171,8 +171,19 @@ RELX_OPTS ?=
 RELX_OUTPUT_DIR ?= _rel
 ifeq ($(RELX),)
 RELX = $(CURDIR)/relx
+RELX_VERSION = 1.0.4
+else
+RELX_VERSION = $(shell relx --version)
 endif
-RELX_URL = https://github.com/erlware/relx/releases/download/v1.0.2/relx
+RELX_URL = https://github.com/erlware/relx/releases/download/v$(RELX_VERSION)/relx
+
+# relx introduced a breaking change in v1: the output doesn't have the same structure
+# see https://github.com/erlware/relx/releases/tag/v1.0.0
+ifeq ($(shell echo $(RELX_VERSION) | head -c 1), 0)
+RELX_RELEASE_DIR = $(RELX_OUTPUT_DIR)
+else
+RELX_RELEASE_DIR = $(RELX_OUTPUT_DIR)/$(PROJ)
+endif
 
 $(RELX):
 	curl -Lo relx $(RELX_URL) || wget $(RELX_URL)
@@ -182,7 +193,7 @@ rel: relclean all_but_dialyzer $(RELX)
 	@$(RELX) -c $(RELX_CONFIG) -o $(RELX_OUTPUT_DIR) $(RELX_OPTS)
 
 devrel: rel
-devrel: lib_dir=$(wildcard $(RELX_OUTPUT_DIR)/lib/$(PROJ)-* )
+devrel: lib_dir=$(wildcard $(RELX_RELEASE_DIR)/lib/$(PROJ)-* )
 devrel:
 	@/bin/echo Symlinking deps and apps into release
 	@rm -rf $(lib_dir); mkdir -p $(lib_dir)
