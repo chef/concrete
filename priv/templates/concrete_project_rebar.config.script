@@ -6,7 +6,7 @@
 %%
 %% YOU SHOULDN'T NEED TO EDIT THIS FILE
 %%
-{concrete_rebar_script_version, 2}.
+{concrete_rebar_script_version, 3}.
 
 %% We need the following helper function to merge dev only options
 %% into the values provided by rebar.config.
@@ -24,7 +24,7 @@ MergeConfig = fun(skip, C) ->
                           {Key, List} when is_list(List) ->
                               %% remove items in ToAdd already in List
                               ToAdd1 = [ I || I <- ToAdd, not lists:member(I, List) ],
-                              lists:keystore(Key, 1, C, {Key, ToAdd1 ++ List })
+                              lists:keystore(Key, 1, C, {Key, List ++ ToAdd1 })
                       end
               end,
 
