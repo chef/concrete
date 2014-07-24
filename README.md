@@ -75,6 +75,15 @@ to your `rebar.config` file:
  {use_edown, false}.
 ```
 
+### Custom Makefile Targets ###
+
+Concrete supports a `custom.mk` file which will not be overwritten
+when concrete is upgraded. You can put any custom makefile targets or
+environment variables in this file. Any modifications you make to
+`Makefile` and `concrete.mk` will be overwritten when you run
+`concrete update`, so put anything you don't want to lose in
+`custom.mk`
+
 ## Installation ##
 
 1. Clone the concrete repo
