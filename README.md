@@ -44,6 +44,10 @@ be rebuilt. If you are encountering confusing dialyzer warnings and
 have recently updated your dependencies, you can remove
 `deps.plt` and rebuild.
 
+#### Travis CI ####
+
+Concrete will attempt to pull in cached PLTs from S3 when running on Travis CI.They're built for Travis, so they won't be downloaded locally. We got them here: [ESL/erlang-plts](https://github.com/esl/erlang-plts). Thanks ESL!
+
 ### Dev only dependencies ###
 
 You can specify dependencies that are only needed during development
