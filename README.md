@@ -23,16 +23,25 @@ development only dependencies.
 ### Dialyzer config ###
 
 The makefile rules included in concrete will check for a
-`~/.dialyzer.plt` file and will create a reusable PLT for the OTP
-modules.
+`~/.concrete_dialyzer_plt_<apps hash>_<erlang version>.plt` file and
+will create a reusable PLT for the OTP modules.
+
+Here are some examples:
+
+```
+.concrete_dialyzer_plt_4667e0f8e4ec738d28efbc1212495b1d_17.plt
+.concrete_dialyzer_plt_4667e0f8e4ec738d28efbc1212495b1d_R16B02.plt
+.concrete_dialyzer_plt_4667e0f8e4ec738d28efbc1212495b1d_R16B03.plt
+.concrete_dialyzer_plt_ce4f2cc7cbd1bdd337c6ba5d475c1290_R16B03.plt
+```
 
 By default, concrete will build a local PLT file containing analysis
 of the dependencies of your project found in the `deps`
 directory. When you run the dialyzer target via `make dialyzer`, the
-global `~/.dialyzer.plt` is combined with the project-specific
-`deps.plt` to analze your code. Including dependencies in the analysis
-is important to get the most out of dialyzer and precomputing a PLT
-for your deps saves time.
+global `~/.concrete_dialyzer_plt_<apps hash>_<erlang version>.plt` is
+combined with the project-specific `deps.plt` to analze your
+code. Including dependencies in the analysis is important to get the
+most out of dialyzer and precomputing a PLT for your deps saves time.
 
 You may encounter some dependenices which do not play well with
 dialyzer. You can tell concrete to omit these problem dependencies by
@@ -46,7 +55,10 @@ have recently updated your dependencies, you can remove
 
 #### Travis CI ####
 
-Concrete will attempt to pull in cached PLTs from S3 when running on Travis CI.They're built for Travis, so they won't be downloaded locally. We got them here: [ESL/erlang-plts](https://github.com/esl/erlang-plts). Thanks ESL!
+Concrete will attempt to pull in cached PLTs from S3 when running on
+Travis CI.They're built for Travis, so they won't be downloaded
+locally. We got them here:
+[ESL/erlang-plts](https://github.com/esl/erlang-plts). Thanks ESL!
 
 ### Dev only dependencies ###
 
@@ -67,6 +79,10 @@ project as a dependency.
 When in dev mode, concrete will define a macro `DEV_ONLY` which can be
 used to conditionally include test code that makes use of a dev only
 dependency.
+
+Another way to think of `DEV_MODE` is "top level project mode". When
+your project is included as someone else's dependency, `rebar` will
+not pull in the `dev_only_deps` into their project.
 
 ### Generate markdown docs via edown ###
 
