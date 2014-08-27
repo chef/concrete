@@ -29,10 +29,10 @@ will create a reusable PLT for the OTP modules.
 Here are some examples:
 
 ```
-.concrete_dialyzer_plt_4667e0f8e4ec738d28efbc1212495b1d_17.plt
-.concrete_dialyzer_plt_4667e0f8e4ec738d28efbc1212495b1d_R16B02.plt
-.concrete_dialyzer_plt_4667e0f8e4ec738d28efbc1212495b1d_R16B03.plt
-.concrete_dialyzer_plt_ce4f2cc7cbd1bdd337c6ba5d475c1290_R16B03.plt
+~/.concrete_dialyzer_plt_4667e0f8e4ec738d28efbc1212495b1d_17.plt
+~/.concrete_dialyzer_plt_4667e0f8e4ec738d28efbc1212495b1d_R16B02.plt
+~/.concrete_dialyzer_plt_4667e0f8e4ec738d28efbc1212495b1d_R16B03.plt
+~/.concrete_dialyzer_plt_ce4f2cc7cbd1bdd337c6ba5d475c1290_R16B03.plt
 ```
 
 By default, concrete will build a local PLT file containing analysis
@@ -56,7 +56,7 @@ have recently updated your dependencies, you can remove
 #### Travis CI ####
 
 Concrete will attempt to pull in cached PLTs from S3 when running on
-Travis CI.They're built for Travis, so they won't be downloaded
+Travis CI. They're built for Travis, so they won't be downloaded
 locally. We got them here:
 [ESL/erlang-plts](https://github.com/esl/erlang-plts). Thanks ESL!
 
