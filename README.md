@@ -104,6 +104,19 @@ environment variables in this file. Any modifications you make to
 `concrete update`, so put anything you don't want to lose in
 `custom.mk`
 
+### Configuring Travis.yml ###
+
+you should set up a minimal `travis.yml` for concrete projects. If you
+leave out the `install:` line, `rebar get-deps` will *NOT* include
+your `dev_only_deps`. Even if you don't have any, your build will fail
+because it's still looking for `edown` and `rebar_lock_deps_plugin`.
+
+```yaml
+language: erlang
+install: true
+script: make get-rebar all <any other target you want>
+```
+
 ## Installation ##
 
 1. Clone the concrete repo
