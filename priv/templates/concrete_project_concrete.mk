@@ -109,7 +109,11 @@ else
 BASE_PLT := ~/.concrete_dialyzer_plt_$(BASE_PLT_ID)_$(ERLANG_VERSION).plt
 endif
 
-all: all_but_dialyzer dialyzer
+## The recursive call to $(MAKE) is here to make sure that we use a verion of
+## DIALYZER_DEPS that's built after $(DEPS) is made. If we didn't do this,
+## dialyzer wouldn't be able to figure out that it needs to build deps.plt
+all: .concrete/DEV_MODE $(DEPS)
+	@$(MAKE) all_but_dialyzer dialyzer
 
 all_but_dialyzer: .concrete/DEV_MODE compile eunit $(ALL_HOOK)
 
