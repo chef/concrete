@@ -87,7 +87,7 @@ PROJ = $(notdir $(CURDIR))
 
 # Let's compute $(BASE_PLT_ID) that identifies the base PLT to use for this project
 # and depends on your `$(ERLANG_DIALYZER_APPS)' list and your erlang version
-ERLANG_VERSION := $(shell $(ERL) -eval 'io:format("~s~n", [erlang:system_info(otp_release)]), halt().' -noshell)
+ERLANG_VERSION := $(shell ERL_FLAGS="" $(ERL) -eval 'io:format("~s~n", [erlang:system_info(otp_release)]), halt().' -noshell)
 MD5_BIN := $(shell which md5 || which md5sum)
 ifeq ($(MD5_BIN),)
 # neither md5 nor md5sum, we just take the project name
