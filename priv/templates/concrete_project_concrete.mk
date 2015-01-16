@@ -87,7 +87,22 @@ PROJ = $(notdir $(CURDIR))
 
 # Let's compute $(BASE_PLT_ID) that identifies the base PLT to use for this project
 # and depends on your `$(ERLANG_DIALYZER_APPS)' list and your erlang version
+
+# As of OTP release 17, the OTP release number corresponds to the major part of the OTP version and the actual current
+# OTP version can be read from the text file <OTP installation root>/releases/<OTP release number>/OTP_VERSION or
+# <OTP source root>/OTP_VERSION.
+ERLANG_VERSION := $(shell ERL_FLAGS="" $(ERL) -eval 'io:format("~p", [filename:join([code:root_dir(), "releases", erlang:system_info(otp_release), "OTP_VERSION"])]), halt().' -noshell | xargs cat 2>/dev/null)
+
+ifeq ($(ERLANG_VERSION),)
+# Fallback if OTP is not an installed development system or some error occurred
+ERLANG_VERSION := $(shell ERL_FLAGS="" $(ERL) -eval 'io:format("~p", [filename:join([code:root_dir(), "OTP_VERSION"])]), halt().' -noshell | xargs cat 2>/dev/null)
+endif
+
+ifeq ($(ERLANG_VERSION),)
+# Fallback for Erlang/OTP versions < 17 or some error occurred
 ERLANG_VERSION := $(shell ERL_FLAGS="" $(ERL) -eval 'io:format("~s~n", [erlang:system_info(otp_release)]), halt().' -noshell)
+endif
+
 MD5_BIN := $(shell which md5 || which md5sum)
 ifeq ($(MD5_BIN),)
 # neither md5 nor md5sum, we just take the project name
@@ -100,7 +115,7 @@ ifeq ($(TRAVIS),true)
 ## If we're running on travis, pull the plt from S3
 ## We got them from https://github.com/esl/erlang-plts
 ## To add to the collection make sure they're public and match the erlang version
-## reported by erlang:system_info(otp_release)
+## reported by make otp_version
 ## s3cmd put --acl-public --guess-mime-type <FILENAME> s3://concrete-plts
 
 BASE_PLT := travis-erlang-$(ERLANG_VERSION).plt
@@ -256,5 +271,7 @@ unlocked_compile:
 update_locked_config:
 	@$(REBAR) lock-deps skip_deps=true
 
+otp_version:
+	@echo $(ERLANG_VERSION)
 
 .PHONY: all all_but_dialyzer compile eunit test dialyzer clean allclean relclean distclean doc tags get-rebar rel devrel
