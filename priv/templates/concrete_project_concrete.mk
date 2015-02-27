@@ -83,7 +83,7 @@ ERLANG_DIALYZER_APPS ?= asn1 \
                         tools \
                         xmerl
 
-PROJ = $(notdir $(CURDIR))
+PROJ ?= $(notdir $(CURDIR))
 
 # Let's compute $(BASE_PLT_ID) that identifies the base PLT to use for this project
 # and depends on your `$(ERLANG_DIALYZER_APPS)' list and your erlang version
