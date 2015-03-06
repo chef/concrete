@@ -215,11 +215,13 @@ else
 RELX_RELEASE_DIR = $(RELX_OUTPUT_DIR)/$(PROJ)
 endif
 
+REL_HOOK ?= all_but_dialyzer
+
 $(RELX):
 	curl -Lo relx $(RELX_URL) || wget $(RELX_URL)
 	chmod a+x relx
 
-rel: relclean all_but_dialyzer $(RELX)
+rel: relclean $(REL_HOOK) $(RELX)
 	@$(RELX) -c $(RELX_CONFIG) -o $(RELX_OUTPUT_DIR) $(RELX_OPTS)
 
 devrel: rel
