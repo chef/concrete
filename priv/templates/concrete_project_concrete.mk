@@ -153,13 +153,16 @@ eunit:
 
 test: eunit
 
+## Override DIALYZER_SRC if your beams live somewhere else
+DIALYZER_SRC ?= -r ebin
+
 # Only include local PLT if we have deps that we are going to analyze
 ifeq ($(strip $(DIALYZER_DEPS)),)
 dialyzer: $(BASE_PLT)
-	@$(DIALYZER) $(DIALYZER_OPTS) --plts $(BASE_PLT) -r ebin
+	@$(DIALYZER) $(DIALYZER_OPTS) --plts $(BASE_PLT) $(DIALYZER_SRC)
 else
 dialyzer: $(BASE_PLT) $(DEPS_PLT)
-	@$(DIALYZER) $(DIALYZER_OPTS) --plts $(BASE_PLT) $(DEPS_PLT) -r ebin
+	@$(DIALYZER) $(DIALYZER_OPTS) --plts $(BASE_PLT) $(DEPS_PLT) $(DIALYZER_SRC)
 
 $(DEPS_PLT):
 	@$(DIALYZER) --build_plt $(DIALYZER_DEPS) --output_plt $(DEPS_PLT)
