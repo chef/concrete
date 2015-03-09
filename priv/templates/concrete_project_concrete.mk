@@ -215,21 +215,35 @@ else
 RELX_RELEASE_DIR = $(RELX_OUTPUT_DIR)/$(PROJ)
 endif
 
+REL_HOOK ?= all_but_dialyzer
+
 $(RELX):
 	curl -Lo relx $(RELX_URL) || wget $(RELX_URL)
 	chmod a+x relx
 
-rel: relclean all_but_dialyzer $(RELX)
+rel: relclean $(REL_HOOK) $(RELX)
 	@$(RELX) -c $(RELX_CONFIG) -o $(RELX_OUTPUT_DIR) $(RELX_OPTS)
 
 devrel: rel
 devrel: lib_dir=$(wildcard $(RELX_RELEASE_DIR)/lib/$(PROJ)-* )
 devrel:
-	@/bin/echo Symlinking deps and apps into release
+	@/bin/echo Symlinking deps into release
+	@$(foreach dep,$(wildcard deps/*), /bin/echo -n .;rm -rf $(RELX_RELEASE_DIR)/lib/$(shell basename $(dep))-* \
+	   && ln -sf $(abspath $(dep)) $(RELX_RELEASE_DIR)/lib;)
+	@/bin/echo done symlinking deps
+	@/bin/echo Symlinking apps into release
+	@$(foreach app,$(wildcard apps/*), /bin/echo -n .;rm -rf $(RELX_RELEASE_DIR)/lib/$(shell basename $(app))-* \
+	   && ln -sf $(abspath $(app)) $(RELX_RELEASE_DIR)/lib;)
+	@/bin/echo done symlinking apps
+ifeq ($(lib_dir),)
+	@/bin/echo No top level code to symlink
+else
+	@/bin/echo Symlinking top level into release
 	@rm -rf $(lib_dir); mkdir -p $(lib_dir)
 	@ln -sf `pwd`/ebin $(lib_dir)
 	@ln -sf `pwd`/priv $(lib_dir)
 	@ln -sf `pwd`/src $(lib_dir)
+endif
 
 relclean:
 	rm -rf $(RELX_OUTPUT_DIR)
