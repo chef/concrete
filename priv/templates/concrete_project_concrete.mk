@@ -116,7 +116,7 @@ endif
 all: .concrete/DEV_MODE $(DEPS)
 	@$(MAKE) all_but_dialyzer dialyzer
 
-all_but_dialyzer: .concrete/DEV_MODE compile eunit $(ALL_HOOK)
+all_but_dialyzer: .concrete/DEV_MODE compile $(ALL_HOOK) eunit
 
 $(REBAR):
 	curl -Lo rebar $(REBAR_URL) || wget $(REBAR_URL)
