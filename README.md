@@ -104,6 +104,20 @@ environment variables in this file. Any modifications you make to
 `concrete update`, so put anything you don't want to lose in
 `custom.mk`
 
+### Using HOOKs ###
+
+The `all`, `clean`, and `rel` targets can be extended by setting
+additional dependencies via their respective HOOK variables:
+`ALL_HOOK`, `CLEAN_HOOK`, and `REL_HOOK`.  For example, to extend the
+all target in your custom.mk, you can do the following:
+
+```
+ALL_HOOK = your_custom_target
+
+your_custom_target:
+   ./something_awesome
+```
+
 ### Configuring Travis.yml ###
 
 you should set up a minimal `travis.yml` for concrete projects. If you
