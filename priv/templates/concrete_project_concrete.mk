@@ -274,4 +274,4 @@ update_locked_config:
 otp_version:
 	@echo $(ERLANG_VERSION)
 
-.PHONY: all all_but_dialyzer compile eunit test dialyzer clean allclean relclean distclean doc tags get-rebar rel devrel
+.PHONY: all all_but_dialyzer compile eunit test dialyzer clean allclean relclean distclean doc tags get-rebar rel devrel otp_version
