@@ -1,3 +1,9 @@
+# Archived Repository
+This repository has been archived and will no longer receive updates. 
+It was archived as part of the [Repository Standardization Initiative](https://github.com/chef-boneyard/oss-repo-standardization-2025).
+If you are a Chef customer and need support for this repository, please contact your Chef account team.
+---
+
 # concrete: enhance your rebar build experience
 
 Concrete enhances your rebar based Erlang project by providing a common Makefile wrapper, a dialyzer make target that caches PLT analysis of your project's dependencies, and a mechanism to specify development only dependencies.
